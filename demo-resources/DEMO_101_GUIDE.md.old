@@ -327,13 +327,266 @@ Check that prep-deploy.sh was created in the directory.
 Verify its execution permissions: run ls -la and look for the x (executable) flag on the script.
 
 Check the script contents. It should use commands like npm version patch (or sed to edit the file) and docker build -t dummy-app:$(node -p "require('./package.json').version")
-### Non-Interactive Queries (Piping)
-* **Prompt:** Exit the interactive CLI session. In your standard terminal, run:
-    `echo "def add(a, b): return a + b" | gemini -p "Add type hints and a docstring to this function."`
-* **Observe:** Processes standard input and returns the typed function without opening the chat interface.
+
+### Test Non-Interactive Queries (Piping)
+Exit the Gemini CLI so you are back in your standard OS terminal. This test evaluates if the CLI can act as a standard Unix pipeline tool.
+
+```bash
+echo "def add(a, b): return a + b" | gemini -p "Add type hints and a docstring to this piped function."
+```
+(Note: Adjust gemini to the actual binary name if it differs, e.g., geminicli).
+
+Validation:
+
+The CLI should not open its chat interface.
+
+It should immediately output the Python function with typing (e.g., def add(a: int, b: int) -> int:) and a docstring to standard output.
+
+The process should terminate and return control to your terminal automatically.
+
 
 ### Auto-Edit Approval Mode
-* **Prompt:** Open a new session with the auto-edit flag:
-    `gemini --approval-mode auto_edit`
-    Then ask: `Add a new comment at the top of main.py explaining that this is a test file.`
-* **Observe:** The CLI edits the file immediately without presenting a confirmation dialogue, optimizing for fast, git-diff-based workflows.
+
+Test Auto-Edit Approval Mode
+For the final test, you need to verify that the CLI can make changes without asking for user confirmation, which is crucial for CI/CD environments.
+
+Preparation (in terminal):
+
+Bash
+# Create a dummy file to edit
+echo "print('hello world')" > main.py
+Execution:
+Launch the CLI with the auto-edit flag enabled.
+
+Bash
+gemini --approval-mode auto_edit
+Prompt (in CLI):
+
+Plaintext
+Add a new comment at the top of main.py explaining that this is a test file.
+Validation:
+
+The CLI should modify main.py instantly.
+
+Crucial: You must not see any "[Y/n]" confirmation prompts asking if you want to apply the file changes.
+
+Check main.py to ensure the comment was successfully injected at the top.
+
+# Gemini CLI Task Planning Test Setup
+
+This document provides the step-by-step walkthrough to test the CLI's built-in task planning and todo list capabilities. This evaluates how well the agent breaks down complex jobs, tracks its progress, and adapts to changing requirements.
+
+## Step 1: Initialize the Environment
+Open your standard terminal and create a fresh directory for testing a multi-step refactor or project creation.
+
+```bash
+mkdir cli-task-planning-test
+cd cli-task-planning-test
+npm init -y
+```
+
+## Step 2: Trigger the Plan Mode
+Start the Gemini CLI in your terminal. You must explicitly ask the agent to create a plan before taking action. 
+
+**Prompt:**
+```text
+I want to set up a basic Node.js project, create a simple javascript math utility file, and then migrate it to TypeScript. Please make a plan first.
+```
+
+**Validation Criteria:**
+* **Tool Usage:** The CLI should invoke its internal `write_todos` (or equivalent) tool.
+* **Visibility:** It should output a structured list of tasks (e.g., 1. Create js file, 2. Install TypeScript, 3. Create tsconfig, 4. Rename to .ts, 5. Fix types).
+
+## Step 3: Review and Iterate the Plan
+Test the CLI's ability to dynamically update its plan based on your feedback before execution.
+
+**Prompt:**
+```text
+You forgot to add a step to write a test file for the math utility. Please add that step before the TypeScript migration.
+```
+
+**Validation Criteria:**
+* The agent must update the existing todo list with the new step inserted in the correct order, rather than just printing a new text block.
+
+## Step 4: Execute the Plan
+Command the agent to begin working through the generated plan.
+
+**Prompt:**
+```text
+Looks good. Start with the first step.
+```
+
+**Validation Criteria:**
+* **State Tracking:** As the agent works, you should see the active task marked as `[IN_PROGRESS]`.
+* **Completion:** Once a step is finished, it should be marked as completed (e.g., `[DONE]`).
+* The agent should pause for your confirmation before moving to the next step, or move automatically depending on your auto-edit settings.
+
+## Step 5: Monitor Progress (UI Test)
+Test the CLI's UI controls for the todo list.
+
+**Action:**
+Press `Ctrl+T` on your keyboard.
+
+**Validation Criteria:**
+* Pressing `Ctrl+T` should toggle the full view of the todo list, allowing you to see pending, in-progress, and completed items without needing to scroll back up through the chat history.
+
+## Step 6: Handle Unexpected Changes
+Test the agent's resilience by changing the requirements halfway through the execution.
+
+**Prompt:**
+```text
+Actually, let's skip the TypeScript migration entirely. Just finish the JavaScript test file and we are done.
+```
+
+**Validation Criteria:**
+* The agent should mark the remaining TypeScript-related tasks as cancelled or remove them from the list dynamically.
+* It should cleanly finish the current JavaScript task and conclude the task plan.
+
+# Gemini CLI Plan Mode & Model Steering Test Setup
+
+This document provides a step-by-step walkthrough to test the CLI's experimental "Plan Mode with Model Steering" feature. This test evaluates whether the user can interrupt and guide the agent in real-time while it is actively researching or drafting, without waiting for a full response cycle to finish.
+
+## Step 1: Initialize the Environment & Enable Settings
+Open your standard terminal and create a dummy project environment. Because this feature is experimental, you may need to ensure it's enabled in the CLI settings.
+
+```bash
+mkdir cli-steering-test
+cd cli-steering-test
+mkdir -p src/services src/utils
+echo "class MockLogger {}" > src/utils/logger.ts
+```
+
+*Note: Verify that both "Plan Mode" and "Model Steering" are enabled in your Gemini CLI configuration (often accessible via a `/settings` command or `.gemini/config` file).*
+
+## Step 2: Start a Complex Task in Plan Mode
+Start the Gemini CLI in your terminal. Use the `/plan` command to force the agent into planning mode rather than immediate execution.
+
+**Prompt:**
+```text
+/plan I want to implement a new notification service using Redis.
+```
+
+**Validation Criteria:**
+* Gemini CLI enters Plan Mode and starts researching your existing codebase to identify where the new service should live. 
+
+## Step 3: Steer the Research Phase (Mid-Flight)
+While the agent is actively researching (while the spinner/progress indicator is still active, before it has finished its turn), test the real-time steering input.
+
+**Action (While spinning):**
+Type the following hint directly into the terminal without waiting for a prompt:
+```text
+"Don't forget to check packages/common/queues for the existing Redis config."
+```
+Press Enter.
+
+**Validation Criteria:**
+* **Responsiveness:** The CLI should acknowledge your hint immediately without breaking the session.
+* **Course Correction:** Gemini CLI acknowledges your hint and immediately incorporates it into its research. You’ll see it start exploring the directory you suggested in its very next turn. 
+
+## Step 4: Refine the Design Mid-Turn
+After research, the agent starts drafting the implementation plan. If you notice it’s proposing a design that doesn’t align with your goals, steer it.
+
+**Action (While drafting):**
+```text
+Actually, let's use a Publisher/Subscriber pattern instead of a simple queue for this service."
+```
+
+**Validation Criteria:**
+* The agent stops drafting the current version of the plan, re-evaluates the design based on your feedback, and starts a new draft that uses the Pub/Sub pattern. 
+
+## Step 5: Validate, Approve and Implement
+Test the transition from Plan Mode back to execution.
+
+**Prompt (Once the plan is fully generated):**
+```text
+Show me the plan you have so far.
+```
+
+**Prompt (Once the plan is fully generated):**
+```text
+Looks perfect. Let's start the implementation.
+```
+
+**Validation Criteria:**
+* The CLI should exit Plan Mode and automatically begin executing the steps outlined in the refined plan (creating the service files, importing the logger, setting up the event-driven structure).
+
+# Gemini CLI MCP Server Setup Test
+
+This document provides a step-by-step walkthrough to test the CLI's ability to configure, connect, and interact with an external Model Context Protocol (MCP) server. Specifically, this test evaluates connecting to the GitHub MCP server via Docker.
+
+## Step 1: Initialize the Environment & Credentials
+Open your standard terminal. Ensure Docker is running on your machine. You will need a valid GitHub Personal Access Token (PAT) for this test.
+
+```bash
+# Export a dummy or test GitHub PAT in your current terminal session
+export GITHUB_PERSONAL_ACCESS_TOKEN="github_pat_test_token_12345"
+
+# Create a local testing directory and Gemini config folder
+mkdir cli-mcp-test
+cd cli-mcp-test
+mkdir .gemini
+```
+
+## Step 2: Configure the MCP Server in Settings
+Create a local `.gemini/settings.json` file to instruct the CLI to spin up the GitHub MCP container.
+
+```bash
+cat << 'EOF' > .gemini/settings.json
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server:latest"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
+EOF
+```
+
+## Step 3: Verify the Connection
+Start the Gemini CLI inside the `cli-mcp-test` directory. Check if the CLI successfully boots the MCP server.
+
+**Command (in CLI):**
+```text
+/mcp list
+```
+
+**Validation Criteria:**
+* The CLI should display the active MCP servers.
+* Look for a status indicating success, such as `✓ github: docker ... - Connected`.
+* *(If it fails, use `/mcp reload` or verify Docker is actively running).*
+
+## Step 4: Execute a Read Scenario (List PRs)
+Test if the CLI can dynamically discover and use the tools provided by the newly connected MCP server.
+
+**Prompt (in CLI):**
+```text
+List the open PRs in the google/gemini-cli repository.
+```
+
+**Validation Criteria:**
+* **Tool Usage:** The CLI should invoke a GitHub-specific tool (e.g., `mcp_github_list_pull_requests` or similar).
+* **Execution:** It should successfully fetch and display the PR data using the credentials passed to the Docker container. 
+ 
+## Step 5: Execute a Write Scenario (Create Issue)
+Test the MCP server's ability to mutate data externally based on natural language instructions.
+
+**Prompt (in CLI):**
+```text
+Create an issue in my test repository titled "Bug: Login fails" with the description "See logs".
+```
+*(Note: Replace "my test repository" with an actual repo where your PAT has write access, e.g., "your-username/test-repo")*
+
+**Validation Criteria:**
+* **Tool Usage:** The CLI should trigger the issue creation tool (e.g., `mcp_github_create_issue`).
+* **Confirmation:** The CLI should confirm the issue was created and ideally provide a link or ID to the newly created GitHub issue.

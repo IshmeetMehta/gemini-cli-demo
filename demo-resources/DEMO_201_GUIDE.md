@@ -1,4 +1,4 @@
-# Gemini CLI 101: Sequential Feature Testing Blueprint
+# Gemini CLI 201: Sequential Feature Testing Blueprint
 
 **Goal:** Evaluate the capabilities, productivity tools, and seamless context-aware interactions of the Gemini CLI. This guide is designed to be executed sequentially. Run the **Setup** prompts first to scaffold the environment, followed by the **Test** prompts.
 

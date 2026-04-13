@@ -8,64 +8,60 @@
 ## Phase 1: Core Scaffolding & Code Editing
 *Start in an empty directory.*
 
-###1.Interactive Scaffolding
-* **Prompt:** `Create a simple FastAPI 'Hello World' app. Generate a requirements.txt file containing fastapi and uvicorn, and a main.py file that initializes the app with a single GET route returning {"message": "Hello World"}.`
-* **Observe:** Verify both files are created and populated correctly without manual intervention.
+### 1. Interactive Scaffolding
+*   **Prompt:** `Create a simple FastAPI 'Hello World' app. Generate a requirements.txt file containing fastapi and uvicorn, and a main.py file that initializes the app with a single GET route returning {"message": "Hello World"}.`
+*   **Observe:** Verify both files are created and populated correctly without manual intervention.
 
-###2.Code Modification
-* **Prompt:** `Add a new Pydantic model for an 'Item' (with a string name and a float price). Then, add a POST endpoint to main.py that accepts this 'Item' and returns it.`
-* **Observe:** The CLI should parse `main.py`, import `BaseModel`, and seamlessly insert the new endpoint without breaking the existing GET route.
+### 2. Code Modification
+*   **Prompt:** `Add a new Pydantic model for an 'Item' (with a string name and a float price). Then, add a POST endpoint to main.py that accepts this 'Item' and returns it.`
+*   **Observe:** The CLI should parse `main.py`, import `BaseModel`, and seamlessly insert the new endpoint without breaking the existing GET route.
 
-###3.Write Unit tests
+### 3. Write Unit Tests
+*   **Prompt:** `Using @main.py as context, create a new file @test_main.py. Write pytest-based unit tests that: 1) Verify the GET route returns 200, 2) Verify the POST /items route correctly echoes the Item payload, and 3) Assert that sending a string instead of a float for 'price' returns a 422 error. Finally, create a venv, install pytest and httpx, and run the tests.`
+*   **Observe:** The CLI should identify the need for `TestClient` or `ASGITransport`, generate the test file without altering the source code, and provide a terminal output showing the test pass/fail status.
 
-* **Prompt:** `Using @main.py as context, create a new file @test_main.py. Write pytest-based unit tests that: 1) Verify the GET route returns 200, 2) Verify the POST /items route correctly echoes the Item payload, and 3) Assert that sending a string instead of a float for 'price' returns a 422 error. Finally, create a venv, install pytest and httpx, and run the tests.`
-* **Observe:** The CLI should identify the need for TestClient or ASGITransport, generate the test file without altering the source code, and provide a terminal output showing the test pass/fail status. 
- 
-###4.Codebase Investigation
-* **Setup:** `Let's make our FastAPI app a bit more complex. Create a src/ directory and move main.py into it. Rename main.py to app.py. Inside app.py, import CORSMiddleware from FastAPI and apply it to the app instance, allowing all origins.`
-* **Prompt:** `Using your codebase investigation tools or sub-agents, find exactly where the FastAPI app is initialized and explain what middleware is currently being applied to it.`
-* **Observe:** The CLI should traverse the directory, locate `src/app.py`, read the contents, and report the applied CORSMiddleware.
+### 4. Codebase Investigation
+*   **Setup:** `Let's make our FastAPI app a bit more complex. Create a src/ directory and move main.py into it. Rename main.py to app.py. Inside app.py, import CORSMiddleware from FastAPI and apply it to the app instance, allowing all origins.`
+*   **Prompt:** `Using your codebase investigation tools or sub-agents, find exactly where the FastAPI app is initialized and explain what middleware is currently being applied to it.`
+*   **Observe:** The CLI should traverse the directory, locate `src/app.py`, read the contents, and report the applied `CORSMiddleware`.
 
 ---
 
 ## Phase 2: File Navigation & Security
 
 ### 1. Multi-file Context (`@` syntax)
-* **Setup:** `Create a dummy React project. Make a src/components directory and add a basic UserProfile.tsx. Create a src/types directory and add User.ts.`
-* **Prompt:** `@src/components/UserProfile.tsx @src/types/User.ts Refactor the component to use the updated User interface.`
-* **Observe:** The CLI directly injects these specific files to process the refactor.
+*   **Setup:** `Create a dummy React project. Make a src/components directory and add a basic UserProfile.tsx. Create a src/types directory and add User.ts.`
+*   **Prompt:** `@src/components/UserProfile.tsx @src/types/User.ts Refactor the component to use the updated User interface.`
+*   **Observe:** The CLI directly injects these specific files to process the refactor.
 
 ### 2. Exploration & `.geminiignore`
-* **Setup:** `Create a .env file with a dummy API secret.` Then manually create a `.geminiignore` file in the root containing `.env`.Use file in the examples folder.
-* **Exploration Prompt:** `Find the file that defines the UserProfile component.`
-* **Security Prompt:** `Scan my directory and list all files containing secrets or passwords.`
-* **Observe:** The CLI should locate the `UserProfile` correctly, but respect the `.geminiignore` file and refuse to read or report the contents of the `.env` file.
+*   **Setup:** `Create a .env file with a dummy API secret.` Then manually create a `.geminiignore` file in the root containing `.env`. (Or use a file from the examples folder).
+*   **Exploration Prompt:** `Find the file that defines the UserProfile component.`
+*   **Security Prompt:** `Scan my directory and list all files containing secrets or passwords.`
+*   **Observe:** The CLI should locate the `UserProfile` correctly, but respect the `.geminiignore` file and refuse to read or report the contents of the `.env` file.
 
 ---
 
 ## Phase 3: Agent Skills & Shell Execution
 
 ### Custom Agent Skills
-* **Setup (Creating the Skill):**
+*   **Setup (Creating the Skill):**
     1.  Run: `mkdir -p .gemini/skills/api-auditor/scripts`
-    2.  Copy examples/skills/api-auditor-skills.md as  `.gemini/skills/api-auditor/SKILL.md`. This tells the agent when to use the skill and how to behave.
-    3.  Copy examples/skills/audit.js as  `.gemini/skills/api-auditor/scripts/audit.js` . This is the code the agent will run.Skills can bundle resources like scripts. 
-    4.  Restart the Geimini cli. 
-#### Gemini CLI automatically discovers skills in the .gemini/skills directory. You can also use .agents/skills as a more generic alternative.  
+    2.  Copy `examples/skills/api-auditor-skills.md` as `.gemini/skills/api-auditor/SKILL.md`. This tells the agent when to use the skill and how to behave.
+    3.  Copy `examples/skills/audit.js` as `.gemini/skills/api-auditor/scripts/audit.js`. This is the code the agent will run. Skills can bundle resources like scripts.
+    4.  Restart the Gemini CLI.
+*   **Note:** Gemini CLI automatically discovers skills in the `.gemini/skills` directory. You can also use `.agents/skills` as a more generic alternative.
 
-* **Prompts:**
+*   **Prompts:**
     1.  `/skills list` (Verify `api-auditor` is discovered).
-    2. Prompt: `Can you audit http://geminicli.com`
+    2.  Prompt: `Can you audit http://geminicli.com`
+*   **Observe:** The CLI should trigger the skill, run the local Node script, and output the result.
 
-* **Observe:** The CLI should trigger the skill, run the local Node script, and output the result.
+## Phase 4: Safe Shell Execution & Auto-Debugging
+*   **Goal:** Test the CLI's ability to execute commands, detect failures, and self-correct.
 
-### Safe Shell Execution & Auto-Debugging
-* **Setup:** `Create a package.json with a script called "build" that runs tsc main.ts. Next, create a main.ts file with a function that adds two numbers, but deliberately introduce a TypeScript type error (e.g., assign a string to a variable explicitly typed as a number).`
-* **Observe:** The CLI executes the terminal command, reads stderr, fixes the file, and re-executes.
-
-### Step 1: Initialize the Project
-Open your standard terminal, create a new directory for the test, and initialize a barebones Node.js project. You will also need to install TypeScript so the compiler is available to the CLI.
-
+#### Step 1: Initialize the Project
+Open your terminal, create a new directory for the test, and initialize a barebones Node.js project.
 ```bash
 mkdir cli-debug-test
 cd cli-debug-test
@@ -73,10 +69,10 @@ npm init -y
 npm install typescript --save-dev
 npx tsc --init
 ```
-### Step 2: Configure the Build Script
-Open the newly generated package.json file. You need to add the specific build command you want the CLI to execute. Modify the scripts section to look like this:
 
-JSON
+#### Step 2: Configure the Build Script
+Modify `package.json` to include a build command:
+```json
 {
   "name": "cli-debug-test",
   "version": "1.0.0",
@@ -87,12 +83,11 @@ JSON
     "typescript": "^5.0.0"
   }
 }
-
-### Step 3: Create the Broken TypeScript File
-Create a file named main.ts in the root of your project directory. Add a simple function, but explicitly declare a variable as a number and assign a string to it to trigger a compilation failure.
-
-TypeScript
 ```
+
+#### Step 3: Create the Broken TypeScript File
+Create `main.ts` with a deliberate type error:
+```typescript
 function addNumbers(a: number, b: number): number {
     return a + b;
 }
@@ -104,67 +99,114 @@ let valueToConfirm: number = "I am a string, not a number";
 console.log(addNumbers(10, valueToConfirm as any));
 ```
 
-### Step 4: Run the Gemini CLI Prompt
-Start the Gemini CLI (or the agentic interface you are testing) inside this project directory. Feed it the exact prompt you designed.
-* **Prompt:** `Run the npm run build command. Since it will fail, capture the error output, fix the offending code in main.ts, and automatically re-run the build command to verify your fix.`
+#### Step 4: Run the Gemini CLI Prompt
+*   **Prompt:** `Run the npm run build command. Since it will fail, capture the error output, fix the offending code in main.ts, and automatically re-run the build command to verify your fix.`
 
-### Step 5: Validate the Execution Loop
-To pass the test successfully, the CLI must perform the following sequence of actions without requiring additional human prompts:
+#### Step 5: Validate the Execution Loop
+To pass the test successfully, the CLI must:
+1.  Execute `npm run build` in the shell.
+2.  Fail the build and read the `TS2322` error.
+3.  Rewrite `main.ts` to fix the type mismatch.
+4.  Re-execute `npm run build`.
+5.  Report success once the command exits with status 0.
 
-Execute npm run build in the shell.
-
-Fail the build and read the resulting TS2322: Type 'string' is not assignable to type 'number' error from standard error (stderr).
-
-Access and rewrite main.ts to fix the type mismatch (for example, by changing "I am a string, not a number" to 5).
-
-Re-execute npm run build.
-
-Terminate the loop and report success to you once the command exits with a clean status code.
-* **Observe:** The CLI executes the terminal command, reads stderr, fixes the file, and re-executes.
 ---
 
-## Phase 4: Memory, Context & Session Management
+---
+
+## Phase 5: Custom Commands
+**Goal:** Define reusable model instructions and shell workflows using TOML configuration files.
+
+### Step 1: Initialize the Commands Directory
+Open your terminal and create the local commands directory.
+```bash
+mkdir -p .gemini/commands
+```
+
+### Step 2: Create a Custom Command
+Create a file named `hello.toml` in the `.gemini/commands/` directory.
+```toml
+description = "A friendly greeting command"
+prompt = "Say hello to {{args}} in an exceptionally enthusiastic tone!"
+```
+
+### Step 3: Run the Custom Command
+Start the Gemini CLI and run your new command.
+*   **Prompt:** `/hello World`
+*   **Observe:** The CLI should recognize the custom command from the `.gemini/commands` folder, inject "World" into the `{{args}}` placeholder, and generate an enthusiastic response.
+
+### Step 4: Context-Aware Shell Command
+Create another command `grep-code.toml` to test shell injection.
+```toml
+description = "Search for a pattern in the codebase"
+prompt = """
+Please summarize the findings for the pattern `{{args}}`.
+Search Results:
+!{grep -r {{args}} .}
+"""
+```
+*   **Prompt:** `/grep-code "FastAPI"`
+*   **Observe:** The CLI should execute the `grep` command (safely escaping the argument), read the results back into the prompt, and summarize them for you.
+
+---
+
+## Phase 6: System Prompt Override
+**Goal:** Completely replace the built-in system prompt with a project-specific persona or strict ruleset.
+
+> [!IMPORTANT]
+> This is a **full replacement**, not a merge. Built-in defaults will not apply unless you include them.
+
+### Step 1: Create the System Prompt File
+Create a file named `system.md` in your project's `.gemini/` directory.
+```bash
+mkdir -p .gemini
+cat << 'EOF' > .gemini/system.md
+# Persona: Minimalist Assistant
+You are a minimalist coding assistant. Give only code snippets without any explanations, pleasantries, or formatting (unless specifically asked).
+EOF
+```
+
+### Step 2: Enable the Override
+Instruct the CLI to use this file by setting the `GEMINI_SYSTEM_MD` variable in your `.gemini/.env` file.
+```bash
+echo "GEMINI_SYSTEM_MD=true" >> .gemini/.env
+```
+
+### Step 3: Verify the New Persona
+Start the Gemini CLI and ask for a simple script.
+*   **Prompt:** `Write a python script to add two numbers.`
+*   **Observe:** The CLI should show a `|⌐■_■|` indicator in the UI (signaling custom mode) and output *only* the code, following your minimalist rules.
+
+---
+
+## Phase 7: Memory, Context & Session Management
 **Goal:** Control what Gemini knows about you and manage your persistent interaction history.
 
-### Project-Wide Rules (GEMINI.md)
-* **Setup:** Create a file named `GEMINI.md` in the root:
+### Project-Wide Rules (`GEMINI.md`)
+*   **Setup:** Create a file named `GEMINI.md` in the root:
     ```markdown
-	# Project Instructions
-	- **Environment:** Always create a Python 3 virtual environment (`python3 -m venv venv`) and use the source command (`source venv/bin/activate`) before using `pip3`.
-	- **Framework:** We use FastAPI with Python 3.10+.
-	- **Styling:** Prefer Annotated dependency injection.
-	- **Testing:** All new logic must include a pytest unit test.
-	- **Tone:** Be concise and professional.
+    # Project Instructions
+    - **Environment:** Always create a Python 3 virtual environment (`python3 -m venv venv`) and use the source command (`source venv/bin/activate`) before using `pip3`.
+    - **Framework:** We use FastAPI with Python 3.10+.
+    - **Styling:** Prefer Annotated dependency injection.
+    - **Testing:** All new logic must include a pytest unit test.
+    - **Tone:** Be concise and professional.
     ```
-* **Prompt:** `Create a new auth service in auth_service.py.`
+*   **Prompt:** `Create a new auth service in auth_service.py.`
+*   **Observe:** The agent should follow the guidelines (environment setup, style, testing) and maintain the specified tone.
 
+### Hierarchical Context Test
+This test checks if the CLI merges instructions from multiple `GEMINI.md` files.
 
-### Hierarchical Context (`GEMINI.md`)
-
-* **Setup:** Create two files manually.
-    * `./GEMINI.md` (Root): `We use React with Vite. Use Tailwind CSS for all styling. Tone: Be exceptionally enthusiastic.`
-    * `./src/GEMINI.md` (Nested): `All new components must include a Vitest unit test.`
-* **Prompt:** `Create a new button component in ./src/components/.`
-* **Observe:** The agent's response should be highly enthusiastic, use React/Tailwind (from root), AND generate a Vitest test (from the `src/` rule).
-
-# Gemini CLI Hierarchical Context Test Setup
-
-This document provides the step-by-step walkthrough to test if the CLI correctly merges and applies instructions from multiple `GEMINI.md` files located at different levels of the directory tree.
-
-### Step 1: Initialize the Project Structure
-Open your terminal and create a new directory for this test, along with the nested `src` directory where our component will live.
-
+#### Step 1: Initialize the Project Structure
 ```bash
 mkdir cli-hierarchical-test
 cd cli-hierarchical-test
 mkdir -p src/components
 ```
 
-### Step 2: Create the Root Context File
-Create a file named `GEMINI.md` in the root of your project directory (`./GEMINI.md`). This establishes the global rules for the entire project.
-
-Add the following content:
-
+#### Step 2: Create the Root Context File
+Create `./GEMINI.md`:
 ```markdown
 # Global Instructions
 - We use React with Vite.
@@ -172,422 +214,143 @@ Add the following content:
 - Tone: Be exceptionally enthusiastic!
 ```
 
-###Step 3: Create the Nested Context File
-Create a second GEMINI.md file inside the src directory (./src/GEMINI.md). This adds specific rules that should only apply when the CLI operates inside the src folder.
-
-Add the following content:
-
+#### Step 3: Create the Nested Context File
+Create `./src/GEMINI.md`:
 ```markdown
 # Frontend Instructions
 - All new components must include a Vitest unit test.
 ```
 
-###Step 4: Run the Gemini CLI Prompt
-Start the Gemini CLI inside the root directory of this project. Execute the following prompt to create a component inside the src hierarchy:
+#### Step 4: Run the Gemini CLI Prompt
+*   **Prompt:** `Create a new button component in ./src/components/.`
 
-Prompt : Create a new button component in ./src/components/.
-
-###Step 5: Validate the Output
-To pass this test, the CLI must successfully traverse the directory tree, combine the contexts from both GEMINI.md files, and apply all constraints. Verify the generated output against these criteria:
-
-Framework (Root Context): The code should be a functional React component (likely Button.jsx or Button.tsx).
-
-Styling (Root Context): The component must use Tailwind CSS utility classes (e.g., className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded").
-
-Tone (Root Context): The CLI's conversational response should be clearly and exceptionally enthusiastic (e.g., "I would absolutely LOVE to build that button for you!").
-
-Testing (Nested Context): The CLI must generate a corresponding test file (e.g., Button.test.jsx or Button.test.tsx) that explicitly uses Vitest (import { describe, it, expect } from 'vitest').
-
+#### Step 5: Validate the Output
+1.  **Framework:** Is it a React component?
+2.  **Styling:** Does it use Tailwind CSS?
+3.  **Tone:** Is the response exceptionally enthusiastic?
+4.  **Testing:** Is there a corresponding Vitest test file?
 
 ### Conversational Memory (Saving Facts)
-* **Prompts (Run sequentially):**
+*   **Prompts (Sequential):**
     1.  `Remember that I prefer using 'const' over 'let' wherever possible.`
     2.  `Save the fact that the staging server IP is 10.0.0.5.`
     3.  `Write a script to deploy to staging.`
-* **Observe:**  SaveMemory in ~/.gemini/memory/demo-resources/GEMINI.md `.
-* **Observe:** The generated deployment script should automatically target `10.0.0.5`.
-* **Verification Prompt:** `/memory show` (Verify the saved facts are present in the loaded context).
+*   **Observe:** Facts are saved to `~/.gemini/memory/.../GEMINI.md`.
+*   **Observe:** The deployment script should target `10.0.0.5`.
+*   **Verification:** Run `/memory show` to verify saved facts.
 
+### Session Management
+*   **Setup:** Create Session A and Session B by starting the CLI, prompting, and quitting.
+*   **Tests:**
+    1.  `gemini --list-sessions` (Lists recent sessions).
+    2.  `gemini -r` (Resumes the last session).
+    3.  `/resume` (Opens interactive session browser).
+    4.  `/quit` and `gemini --delete-session 1` (Test deletion).
 
-### Session Management (Resume, List, Delete)
-* **Setup:** Open a terminal, type `gemini`, prompt `Hello, this is Session A`, then type `/quit`. Open again, prompt `Hello, this is Session B`, then `/quit`.
-* **Tests (Run from your standard terminal):**
-    1.  `gemini --list-sessions` *(Observe: Lists your recent sessions).*
-    2.  `gemini -r` *(Observe: Automatically resumes your most recent session, "Session B").*
-    3.  Inside the session, type `/resume`. *(Observe: Opens the interactive browser. Use arrow keys to explore, press `x` to delete an old session).*
-    4.  Type `/quit` to exit, then run `gemini --delete-session 1` to test command-line deletion.
+---
 
-## Phase 5:  Web Search and Fetch
-This document provides the step-by-step walkthrough to test the CLI's ability to search the web, fetch specific URLs for deep context, and apply external documentation to local code.
-* **Goal:** Test the ability to pull external, up-to-date documentation and apply it locally.
-* **Tests (Run sequentially):**
-    * **Search (Finding Documentation):** `Search for the 'Bun 1.0' release notes and summarize the key changes.`
-        *(Observe: The CLI uses the `google_web_search` tool to ground the response in live internet data).*
-    * **Fetch (Deep Context from URL):**
-        `Read https://geminicli.com/docs/cli/tutorials/web-tools/ and explain how to apply it to my code.`
-        *(Observe: The CLI uses the `web_fetch` tool to retrieve the raw page content, stripping ads/nav).*
-    * **Apply Knowledge to Code (Workflow):**
-        `Search: "How do I implement auth with Supabase?"` -> 
-        `Fetch: "Read this guide: https://supabase.com/docs/guides/auth"` -> 
-        `Implement: "Great. Now use that pattern to create an auth.ts file in my project."`
-    * **Troubleshoot Errors:**
-        `I'm getting 'Error: hydration mismatch' in Next.js. Search for recent solutions.`
-        *(Observe: The CLI searches GitHub issues, StackOverflow, or forums for recent fixes).*
+## Phase 8: Web Search and Fetch
+**Goal:** Pull external, up-to-date documentation and apply it locally.
 
-
-## Step 1: Initialize the Test Environment
-While some of these tests are conversational, the third test requires modifying a local project. Let's create a scratchpad directory for this.
-
+### Step 1: Initialize the Test Environment
 ```bash
 mkdir cli-web-tools-test
 cd cli-web-tools-test
 npm init -y
 ```
 
-Step 2: Test Web Search (Finding Documentation)
-Start the Gemini CLI in your terminal and run the following prompt to test its live internet access.
+### Step 2: Test Web Search
+*   **Prompt:** `Search for the 'Bun 1.0' release notes and summarize the key changes.`
+*   **Observe:** Uses `google_web_search` for live data.
 
-Prompt: "Search for the 'Bun 1.0' release notes and summarize the key changes."
+### Step 3: Test URL Fetching (Deep Context)
+*   **Prompt:** `Read https://geminicli.com/docs/cli/tutorials/web-tools/ and explain how to apply it to my code.`
+*   **Observe:** Uses `web_fetch` to retrieve and comprehend page content.
 
-Step 3: Test URL Fetching (Deep Context)
+### Step 4: Test Workflow (Search -> Fetch -> Implement)
+Run sequentially:
+1.  `Search: "How do I implement auth with Supabase?"`
+2.  `Fetch: "Read this guide: https://supabase.com/docs/guides/auth"`
+3.  `Implement: "Great. Now use that pattern to create an auth.ts file in my project."`
+*   **Validation:** Continuity (memory across prompts), Execution (file creation), and Accuracy (correct pattern usage).
 
-Next, test the CLI's ability to read raw page content from a specific URL, stripping away unnecessary HTML/navigation bloat.
+### Step 5: Test Error Troubleshooting
+*   **Prompt:** `I'm getting 'Error: hydration mismatch' in Next.js. Search for recent solutions.`
+*   **Observe:** Searches GitHub/StackOverflow and synthesizes standard fixes.
 
-Prompt:"Read [https://geminicli.com/docs/cli/tutorials/web-tools/](https://geminicli.com/docs/cli/tutorials/web-tools/) and explain how to apply it to my code."
+---
 
-Validation Criteria:
-
-Tool Usage: The CLI should trigger a fetch/read tool (e.g., web_fetch).
-
-Comprehension: The response must directly reference the specific content found on that page and provide actionable advice on how to integrate those concepts locally.
-
-Step 4: Test Workflow (Apply Knowledge to Code)
-This test evaluates the CLI's ability to chain tasks: Search -> Fetch -> Implement. Run these prompts sequentially in the same chat session.
-
-Prompt 1 (Search): "Search: "How do I implement auth with Supabase?"
-Prompt 2 (Fetch): "Read this guide: [https://supabase.com/docs/guides/auth](https://supabase.com/docs/guides/auth)"
-Prompt 3 (Implement): "Great. Now use that pattern to create an auth.ts file in my project."
-
-Validation Criteria:
-
-Continuity: The CLI must remember the context from Prompts 1 and 2.
-
-Execution: It should generate a new file named auth.ts in your current directory.
-
-Accuracy: The code inside auth.ts must reflect the official Supabase patterns found in the fetched documentation (e.g., utilizing @supabase/supabase-js).
-
-Step 5: Test Error Troubleshooting
-Finally, test the CLI's ability to act as a debugging assistant by looking up recent solutions to specific framework errors.
-
-Prompt: "I'm getting 'Error: hydration mismatch' in Next.js. Search for recent solutions."
-
-Validation Criteria:
-
-Tool Usage: The CLI should execute a web search.
-
-Relevance: It should bring back current, standard fixes for Next.js hydration issues (e.g., using useEffect to delay rendering, checking for invalid HTML nesting, or using suppressHydrationWarning). It should clearly synthesize solutions from community sources like GitHub issues or Stack Overflow.
-----
-## Phase 6: Core Terminal Integration
+## Phase 9: Core Terminal Integration
 
 ### Bash Script Automation
-* **Setup:** `Initialize an empty git repository here. Create a dummy package.json (version 1.0.0) and a Dockerfile. Commit them.`
-* **Prompt:** `Create a bash script named prep-deploy.sh that will: bump the patch version in package.json, build the Docker image tagging it with the new version, and output a success message. Make the script executable.`
-* **Observe:** The CLI generates valid bash, uses `chmod +x`, and chains the commands.
+*   **Setup:** `Initialize an empty git repository here. Create a dummy package.json (version 1.0.0) and a Dockerfile. Commit them.`
+*   **Prompt:** `Create a bash script named prep-deploy.sh that will: bump the patch version in package.json, build the Docker image tagging it with the new version, and output a success message. Make the script executable.`
+*   **Observe:** Generates valid bash, uses `chmod +x`, and chains commands.
 
-# Gemini CLI Terminal Integration Test Setup
-
-This document provides the step-by-step plan to execute Phase 6: Core Terminal Integration tests. These tests validate the CLI's ability to manipulate the local file system, handle standard input streams, and bypass interactive prompts for automated workflows.
-
-## Step 1: Initialize the Environment & Git
-Open your standard terminal and create a dedicated directory for these tests. This step includes the setup for the Bash Script Automation test.
-
-```bash
-mkdir cli-terminal-test
-cd cli-terminal-test
-git init
-
-# Create a dummy package.json
-echo '{ "name": "dummy-app", "version": "1.0.0" }' > package.json
-
-# Create a dummy Dockerfile
-echo 'FROM alpine:latest' > Dockerfile
-
-# Commit the initial state
-git add .
-git commit -m "Initial commit for CLI testing"
-
-## Step 2: Test Bash Script Automation
-Start the interactive Gemini CLI inside the `cli-terminal-test` directory and issue the command to generate the bash script.
-
-Prompt : Create a bash script named prep-deploy.sh that will: bump the patch version in package.json, build the Docker image tagging it with the new version, and output a success message. Make the script executable.
-
-Validation:
-
-Check that prep-deploy.sh was created in the directory.
-
-Verify its execution permissions: run ls -la and look for the x (executable) flag on the script.
-
-Check the script contents. It should use commands like npm version patch (or sed to edit the file) and docker build -t dummy-app:$(node -p "require('./package.json').version")
-
-### Test Non-Interactive Queries (Piping)
-Exit the Gemini CLI so you are back in your standard OS terminal. This test evaluates if the CLI can act as a standard Unix pipeline tool.
-
-```bash
-echo "def add(a, b): return a + b" | gemini -p "Add type hints and a docstring to this piped function."
-```
-(Note: Adjust gemini to the actual binary name if it differs, e.g., geminicli).
-
-Validation:
-
-The CLI should not open its chat interface.
-
-It should immediately output the Python function with typing (e.g., def add(a: int, b: int) -> int:) and a docstring to standard output.
-
-The process should terminate and return control to your terminal automatically.
-
+### Non-Interactive Queries (Piping)
+*   **Command:**
+    ```bash
+    echo "def add(a, b): return a + b" | gemini -p "Add type hints and a docstring to this piped function."
+    ```
+*   **Observe:** CLI outputs formatted code directly to stdout and terminates without opening the chat UI.
 
 ### Auto-Edit Approval Mode
+*   **Setup:** `echo "print('hello world')" > main.py`
+*   **Action:** Launch with `gemini --approval-mode auto_edit`.
+*   **Prompt:** `Add a new comment at the top of main.py explaining that this is a test file.`
+*   **Observe:** File is modified instantly without "[Y/n]" prompts.
 
-Test Auto-Edit Approval Mode
-For the final test, you need to verify that the CLI can make changes without asking for user confirmation, which is crucial for CI/CD environments.
+---
 
-Preparation (in terminal):
+## Phase 10: Task Planning
+**Goal:** Break down complex jobs and track progress.
 
-Bash
-# Create a dummy file to edit
-echo "print('hello world')" > main.py
-Execution:
-Launch the CLI with the auto-edit flag enabled.
+### Step 1: Trigger Plan Mode
+*   **Prompt:** `I want to set up a basic Node.js project, create a simple javascript math utility file, and then migrate it to TypeScript. Please make a plan first.`
+*   **Observe:** CLI invokes `write_todos` and outputs a structured list.
 
-Bash
-gemini --approval-mode auto_edit
-Prompt (in CLI):
+### Step 2: Iterate the Plan
+*   **Prompt:** `You forgot to add a step to write a test file for the math utility. Please add that step before the TypeScript migration.`
+*   **Observe:** Todo list is updated dynamically.
 
-Plaintext
-Add a new comment at the top of main.py explaining that this is a test file.
-Validation:
+### Step 3: Execute and Monitor
+*   **Prompt:** `Looks good. Start with the first step.`
+*   **Observe:** State tracking (`[IN_PROGRESS]`, `[DONE]`) and `Ctrl+T` to toggle the list view.
 
-The CLI should modify main.py instantly.
+### Step 4: Handle Unexpected Changes
+*   **Prompt:** `Actually, let's skip the TypeScript migration entirely. Just finish the JavaScript test file and we are done.`
+*   **Observe:** Remaining tasks are cancelled/removed.
 
-Crucial: You must not see any "[Y/n]" confirmation prompts asking if you want to apply the file changes.
+---
 
-Check main.py to ensure the comment was successfully injected at the top.
+## Phase 11: Plan Mode & Model Steering (Experimental)
+**Goal:** Interrupt and guide the agent in real-time.
 
-# Gemini CLI Task Planning Test Setup
+### Step 1: Start Complex Task
+*   **Prompt:** `/plan I want to implement a new notification service using Redis.`
 
-This document provides the step-by-step walkthrough to test the CLI's built-in task planning and todo list capabilities. This evaluates how well the agent breaks down complex jobs, tracks its progress, and adapts to changing requirements.
+### Step 2: Mid-Flight Steering
+*   **Action (While spinning):** Type `Don't forget to check packages/common/queues for the existing Redis config.` and press Enter.
+*   **Observe:** CLI acknowledges and incorporates the hint into its research turn.
 
-## Step 1: Initialize the Environment
-Open your standard terminal and create a fresh directory for testing a multi-step refactor or project creation.
+### Step 3: Design Refinement
+*   **Action (While drafting):** `Actually, let's use a Publisher/Subscriber pattern instead of a simple queue for this service.`
+*   **Observe:** Agent stops drafting and restarts based on new design feedback.
 
-```bash
-mkdir cli-task-planning-test
-cd cli-task-planning-test
-npm init -y
-```
+---
 
-## Step 2: Trigger the Plan Mode
-Start the Gemini CLI in your terminal. You must explicitly ask the agent to create a plan before taking action. 
+## Phase 12: MCP Server Setup
+**Goal:** Configure and interact with external MCP servers (e.g., GitHub).
 
-**Prompt:**
-```text
-I want to set up a basic Node.js project, create a simple javascript math utility file, and then migrate it to TypeScript. Please make a plan first.
-```
+### Step 1: Configuration
+Create `.gemini/settings.json` with the GitHub MCP server config (using Docker and a PAT).
 
-**Validation Criteria:**
-* **Tool Usage:** The CLI should invoke its internal `write_todos` (or equivalent) tool.
-* **Visibility:** It should output a structured list of tasks (e.g., 1. Create js file, 2. Install TypeScript, 3. Create tsconfig, 4. Rename to .ts, 5. Fix types).
+### Step 2: Verification
+*   **Command:** `/mcp list`
+*   **Observe:** Displays status `Connected`.
 
-## Step 3: Review and Iterate the Plan
-Test the CLI's ability to dynamically update its plan based on your feedback before execution.
+### Step 3: Execution (Read/Write)
+*   **Prompt:** `List the open PRs in the google/gemini-cli repository.`
+*   **Prompt:** `Create an issue in my test repository titled "Bug: Login fails" with the description "See logs".`
+*   **Observe:** Uses specific MCP tools to interact with external data.
 
-**Prompt:**
-```text
-You forgot to add a step to write a test file for the math utility. Please add that step before the TypeScript migration.
-```
-
-**Validation Criteria:**
-* The agent must update the existing todo list with the new step inserted in the correct order, rather than just printing a new text block.
-
-## Step 4: Execute the Plan
-Command the agent to begin working through the generated plan.
-
-**Prompt:**
-```text
-Looks good. Start with the first step.
-```
-
-**Validation Criteria:**
-* **State Tracking:** As the agent works, you should see the active task marked as `[IN_PROGRESS]`.
-* **Completion:** Once a step is finished, it should be marked as completed (e.g., `[DONE]`).
-* The agent should pause for your confirmation before moving to the next step, or move automatically depending on your auto-edit settings.
-
-## Step 5: Monitor Progress (UI Test)
-Test the CLI's UI controls for the todo list.
-
-**Action:**
-Press `Ctrl+T` on your keyboard.
-
-**Validation Criteria:**
-* Pressing `Ctrl+T` should toggle the full view of the todo list, allowing you to see pending, in-progress, and completed items without needing to scroll back up through the chat history.
-
-## Step 6: Handle Unexpected Changes
-Test the agent's resilience by changing the requirements halfway through the execution.
-
-**Prompt:**
-```text
-Actually, let's skip the TypeScript migration entirely. Just finish the JavaScript test file and we are done.
-```
-
-**Validation Criteria:**
-* The agent should mark the remaining TypeScript-related tasks as cancelled or remove them from the list dynamically.
-* It should cleanly finish the current JavaScript task and conclude the task plan.
-
-# Gemini CLI Plan Mode & Model Steering Test Setup
-
-This document provides a step-by-step walkthrough to test the CLI's experimental "Plan Mode with Model Steering" feature. This test evaluates whether the user can interrupt and guide the agent in real-time while it is actively researching or drafting, without waiting for a full response cycle to finish.
-
-## Step 1: Initialize the Environment & Enable Settings
-Open your standard terminal and create a dummy project environment. Because this feature is experimental, you may need to ensure it's enabled in the CLI settings.
-
-```bash
-mkdir cli-steering-test
-cd cli-steering-test
-mkdir -p src/services src/utils
-echo "class MockLogger {}" > src/utils/logger.ts
-```
-
-*Note: Verify that both "Plan Mode" and "Model Steering" are enabled in your Gemini CLI configuration (often accessible via a `/settings` command or `.gemini/config` file).*
-
-## Step 2: Start a Complex Task in Plan Mode
-Start the Gemini CLI in your terminal. Use the `/plan` command to force the agent into planning mode rather than immediate execution.
-
-**Prompt:**
-```text
-/plan I want to implement a new notification service using Redis.
-```
-
-**Validation Criteria:**
-* Gemini CLI enters Plan Mode and starts researching your existing codebase to identify where the new service should live. 
-
-## Step 3: Steer the Research Phase (Mid-Flight)
-While the agent is actively researching (while the spinner/progress indicator is still active, before it has finished its turn), test the real-time steering input.
-
-**Action (While spinning):**
-Type the following hint directly into the terminal without waiting for a prompt:
-```text
-"Don't forget to check packages/common/queues for the existing Redis config."
-```
-Press Enter.
-
-**Validation Criteria:**
-* **Responsiveness:** The CLI should acknowledge your hint immediately without breaking the session.
-* **Course Correction:** Gemini CLI acknowledges your hint and immediately incorporates it into its research. You’ll see it start exploring the directory you suggested in its very next turn. 
-
-## Step 4: Refine the Design Mid-Turn
-After research, the agent starts drafting the implementation plan. If you notice it’s proposing a design that doesn’t align with your goals, steer it.
-
-**Action (While drafting):**
-```text
-Actually, let's use a Publisher/Subscriber pattern instead of a simple queue for this service."
-```
-
-**Validation Criteria:**
-* The agent stops drafting the current version of the plan, re-evaluates the design based on your feedback, and starts a new draft that uses the Pub/Sub pattern. 
-
-## Step 5: Validate, Approve and Implement
-Test the transition from Plan Mode back to execution.
-
-**Prompt (Once the plan is fully generated):**
-```text
-Show me the plan you have so far.
-```
-
-**Prompt (Once the plan is fully generated):**
-```text
-Looks perfect. Let's start the implementation.
-```
-
-**Validation Criteria:**
-* The CLI should exit Plan Mode and automatically begin executing the steps outlined in the refined plan (creating the service files, importing the logger, setting up the event-driven structure).
-
-# Gemini CLI MCP Server Setup Test
-
-This document provides a step-by-step walkthrough to test the CLI's ability to configure, connect, and interact with an external Model Context Protocol (MCP) server. Specifically, this test evaluates connecting to the GitHub MCP server via Docker.
-
-## Step 1: Initialize the Environment & Credentials
-Open your standard terminal. Ensure Docker is running on your machine. You will need a valid GitHub Personal Access Token (PAT) for this test.
-
-```bash
-# Export a dummy or test GitHub PAT in your current terminal session
-export GITHUB_PERSONAL_ACCESS_TOKEN="github_pat_test_token_12345"
-
-# Create a local testing directory and Gemini config folder
-mkdir cli-mcp-test
-cd cli-mcp-test
-mkdir .gemini
-```
-
-## Step 2: Configure the MCP Server in Settings
-Create a local `.gemini/settings.json` file to instruct the CLI to spin up the GitHub MCP container.
-
-```bash
-cat << 'EOF' > .gemini/settings.json
-{
-  "mcpServers": {
-    "github": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server:latest"
-      ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
-    }
-  }
-}
-EOF
-```
-
-## Step 3: Verify the Connection
-Start the Gemini CLI inside the `cli-mcp-test` directory. Check if the CLI successfully boots the MCP server.
-
-**Command (in CLI):**
-```text
-/mcp list
-```
-
-**Validation Criteria:**
-* The CLI should display the active MCP servers.
-* Look for a status indicating success, such as `✓ github: docker ... - Connected`.
-* *(If it fails, use `/mcp reload` or verify Docker is actively running).*
-
-## Step 4: Execute a Read Scenario (List PRs)
-Test if the CLI can dynamically discover and use the tools provided by the newly connected MCP server.
-
-**Prompt (in CLI):**
-```text
-List the open PRs in the google/gemini-cli repository.
-```
-
-**Validation Criteria:**
-* **Tool Usage:** The CLI should invoke a GitHub-specific tool (e.g., `mcp_github_list_pull_requests` or similar).
-* **Execution:** It should successfully fetch and display the PR data using the credentials passed to the Docker container. 
-
-## Step 5: Execute a Write Scenario (Create Issue)
-Test the MCP server's ability to mutate data externally based on natural language instructions.
-
-**Prompt (in CLI):**
-```text
-Create an issue in my test repository titled "Bug: Login fails" with the description "See logs".
-```
-*(Note: Replace "my test repository" with an actual repo where your PAT has write access, e.g., "your-username/test-repo")*
-
-**Validation Criteria:**
-* **Tool Usage:** The CLI should trigger the issue creation tool (e.g., `mcp_github_create_issue`).
-* **Confirmation:** The CLI should confirm the issue was created and ideally provide a link or ID to the newly created GitHub issue.
