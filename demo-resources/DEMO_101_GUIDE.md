@@ -343,7 +343,30 @@ Run sequentially:
 **Goal:** Configure and interact with external MCP servers (e.g., GitHub).
 
 ### Step 1: Configuration
-Create `.gemini/settings.json` with the GitHub MCP server config (using Docker and a PAT).
+Create a local `.gemini/settings.json` file to instruct the CLI to spin up the GitHub MCP container.
+
+```bash
+cat << 'EOF' > .gemini/settings.json
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server:latest"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
+EOF
+```
 
 ### Step 2: Verification
 *   **Command:** `/mcp list`
