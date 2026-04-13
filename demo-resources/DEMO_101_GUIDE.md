@@ -393,10 +393,19 @@ If the agent proposes a design that doesn't align with your goals, steer it whil
 ## Phase 12: MCP Server Setup
 **Goal:** Configure and interact with external MCP servers (e.g., GitHub).
 
-### Step 1: Configuration
-Create a local `.gemini/settings.json` file to instruct the CLI to spin up the GitHub MCP container.
+### Step 1: Initialize Credentials & Configuration
+Open your terminal. You will need a valid GitHub Personal Access Token (PAT) with `repo` scope for this test.
 
 ```bash
+# Export your GitHub PAT in your current terminal session
+export GITHUB_PERSONAL_ACCESS_TOKEN="your_token_here"
+
+# Create a dedicated testing directory
+mkdir cli-mcp-test
+cd cli-mcp-test
+mkdir .gemini
+
+# Create the settings file
 cat << 'EOF' > .gemini/settings.json
 {
   "mcpServers": {
