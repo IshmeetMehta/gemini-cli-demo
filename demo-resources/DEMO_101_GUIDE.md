@@ -103,12 +103,12 @@ console.log(addNumbers(10, valueToConfirm as any));
 *   **Prompt:** `Run the npm run build command. Since it will fail, capture the error output, fix the offending code in main.ts, and automatically re-run the build command to verify your fix.`
 
 #### Step 5: Validate the Execution Loop
-To pass the test successfully, the CLI must:
-1.  Execute `npm run build` in the shell.
-2.  Fail the build and read the `TS2322` error.
-3.  Rewrite `main.ts` to fix the type mismatch.
-4.  Re-execute `npm run build`.
-5.  Report success once the command exits with status 0.
+To pass the test successfully, the CLI must perform the following sequence of actions without requiring additional human prompts:
+1.  **Execute** `npm run build` in the shell.
+2.  **Fail the build** and read the resulting `TS2322: Type 'string' is not assignable to type 'number' error from standard error (stderr)`.
+3.  **Automatically Rewrite** `main.ts` to fix the type mismatch (e.g., by changing the string to a number).
+4.  **Re-execute** `npm run build` to verify the fix.
+5.  **Report success** once the command exits with a clean status code (0).
 
 ---
 
@@ -225,10 +225,11 @@ Create `./src/GEMINI.md`:
 *   **Prompt:** `Create a new button component in ./src/components/.`
 
 #### Step 5: Validate the Output
-1.  **Framework:** Is it a React component?
-2.  **Styling:** Does it use Tailwind CSS?
-3.  **Tone:** Is the response exceptionally enthusiastic?
-4.  **Testing:** Is there a corresponding Vitest test file?
+The CLI must successfully traverse the tree, combine contexts, and apply all constraints. Verify the generated output against these criteria:
+*   **Framework (Root Context):** The code should be a functional React component (likely `Button.jsx` or `Button.tsx`).
+*   **Styling (Root Context):** The component must use Tailwind CSS utility classes (e.g., `className="bg-blue-500 ..."`).
+*   **Tone (Root Context):** The response should be exceptionally enthusiastic (e.g., "I would absolutely LOVE to build that button for you!").
+*   **Testing (Nested Context):** The CLI must generate a corresponding test file (e.g., `Button.test.jsx`) that explicitly uses **Vitest** (`import { describe, it, expect } from 'vitest'`).
 
 ### Conversational Memory (Saving Facts)
 *   **Prompts (Sequential):**
@@ -282,10 +283,34 @@ Run sequentially:
 
 ## Phase 9: Core Terminal Integration
 
-### Bash Script Automation
-*   **Setup:** `Initialize an empty git repository here. Create a dummy package.json (version 1.0.0) and a Dockerfile. Commit them.`
+### Bash Script Automation & Git Integration
+
+#### Step 1: Initialize the Environment & Git
+Open your terminal and create a dedicated directory.
+```bash
+mkdir cli-terminal-test
+cd cli-terminal-test
+git init
+
+# Create a dummy package.json
+echo '{ "name": "dummy-app", "version": "1.0.0" }' > package.json
+
+# Create a dummy Dockerfile
+echo 'FROM alpine:latest' > Dockerfile
+
+# Commit the initial state
+git add .
+git commit -m "Initial commit for CLI testing"
+```
+
+#### Step 2: Test Bash Script Automation
+Start the interactive Gemini CLI inside the `cli-terminal-test` directory and issue the command:
 *   **Prompt:** `Create a bash script named prep-deploy.sh that will: bump the patch version in package.json, build the Docker image tagging it with the new version, and output a success message. Make the script executable.`
-*   **Observe:** Generates valid bash, uses `chmod +x`, and chains commands.
+
+#### Step 3: Validate
+*   **Creation:** Check that `prep-deploy.sh` was created.
+*   **Permissions:** Run `ls -la` and look for the `x` (executable) flag.
+*   **Logic:** The script should use commands like `npm version patch` and `docker build -t dummy-app:$(node -p "require('./package.json').version")`.
 
 ### Non-Interactive Queries (Piping)
 *   **Command:**
@@ -307,35 +332,61 @@ Run sequentially:
 
 ### Step 1: Trigger Plan Mode
 *   **Prompt:** `I want to set up a basic Node.js project, create a simple javascript math utility file, and then migrate it to TypeScript. Please make a plan first.`
-*   **Observe:** CLI invokes `write_todos` and outputs a structured list.
+*   **Validation:**
+    *   **Tool Usage:** The CLI should invoke its internal `write_todos` tool.
+    *   **Visibility:** It should output a structured list of tasks (e.g., 1. Create js file, 2. Install TypeScript, 3. Create tsconfig, etc.).
 
-### Step 2: Iterate the Plan
+### Step 2: Review and Iterate the Plan
 *   **Prompt:** `You forgot to add a step to write a test file for the math utility. Please add that step before the TypeScript migration.`
-*   **Observe:** Todo list is updated dynamically.
+*   **Validation:** The agent must update the existing todo list with the new step inserted in the correct order.
 
 ### Step 3: Execute and Monitor
 *   **Prompt:** `Looks good. Start with the first step.`
-*   **Observe:** State tracking (`[IN_PROGRESS]`, `[DONE]`) and `Ctrl+T` to toggle the list view.
+*   **Validation:**
+    *   **State Tracking:** Active tasks should be marked as `[IN_PROGRESS]`.
+    *   **Completion:** Finished tasks should be marked as `[DONE]`.
+    *   **UI Controls:** Press `Ctrl+T` to toggle the todo list view anytime.
 
 ### Step 4: Handle Unexpected Changes
 *   **Prompt:** `Actually, let's skip the TypeScript migration entirely. Just finish the JavaScript test file and we are done.`
-*   **Observe:** Remaining tasks are cancelled/removed.
+*   **Validation:** The agent should mark remaining tasks as cancelled or remove them from the list dynamically.
 
 ---
 
 ## Phase 11: Plan Mode & Model Steering (Experimental)
-**Goal:** Interrupt and guide the agent in real-time.
+**Goal:** Interrupt and guide the agent in real-time during planning phases.
 
-### Step 1: Start Complex Task
+### Step 1: Initialize the Environment & Enable Settings
+Open your terminal and create a dummy project environment.
+```bash
+mkdir cli-steering-test
+cd cli-steering-test
+mkdir -p src/services src/utils
+echo "class MockLogger {}" > src/utils/logger.ts
+```
+> [!NOTE]
+> Ensure "Plan Mode" and "Model Steering" are enabled in your configuration (e.g., via `.gemini/config`).
+
+### Step 2: Start a Complex Task in Plan Mode
+Start the Gemini CLI and use the `/plan` command.
 *   **Prompt:** `/plan I want to implement a new notification service using Redis.`
+*   **Observe:** Gemini CLI enters Plan Mode and begins researching your codebase to identify where the new service should live.
 
-### Step 2: Mid-Flight Steering
+### Step 3: Steer the Research Phase (Mid-Flight)
+While the agent is actively researching (spinner is active), provide a real-time hint.
 *   **Action (While spinning):** Type `Don't forget to check packages/common/queues for the existing Redis config.` and press Enter.
-*   **Observe:** CLI acknowledges and incorporates the hint into its research turn.
+*   **Observe:** The CLI should acknowledge the hint immediately without breaking the session and incorporate it into its next research turn.
 
-### Step 3: Design Refinement
+### Step 4: Refine the Design Mid-Turn
+If the agent proposes a design that doesn't align with your goals, steer it while it is drafting.
 *   **Action (While drafting):** `Actually, let's use a Publisher/Subscriber pattern instead of a simple queue for this service.`
-*   **Observe:** Agent stops drafting and restarts based on new design feedback.
+*   **Observe:** The agent stops drafting the current version, re-evaluates the design, and starts a new draft using the Pub/Sub pattern.
+
+### Step 5: Validate and Implement
+*   **Prompt:** `Show me the plan you have so far.`
+*   **Prompt:** `Looks perfect. Let's start the implementation.`
+*   **Observe:** The CLI exits Plan Mode and automatically begins executing the refined implementation steps (creating files, importing loggers, etc.).
+
 
 ---
 
